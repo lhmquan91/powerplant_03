@@ -1,0 +1,24 @@
+{# details/templates/details/equipment_value/index.html #}
+{% extends "wagtailadmin/generic/index.html" %}
+{% load i18n wagtailadmin_tags %}
+
+{% block titletag %}{{ view.get_page_title }} - {{ block.super }}{% endblock %}
+
+{# Nạp script Bulk Actions (để hỗ trợ xóa nhiều dòng nếu cần) #}
+{% block extra_js %}
+    {{ block.super }}
+    <script defer src="{% versioned_static 'wagtailadmin/js/bulk-actions.js' %}"></script>
+{% endblock %}
+
+{# Tùy biến Header: Có thể thêm bộ lọc nhanh hoặc thông tin tổng quan #}
+{% block main_header %}
+    {{ block.super }}
+{% endblock %}
+
+{# KHU VỰC LISTING CHÍNH #}
+{% block listing %}
+    <div id="listing-results">
+        {# Include file results tách biệt để hỗ trợ AJAX #}
+        {% include "details/equipment_value/index_results.html" %}
+    </div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{# details/templates/details/detail_group/delete.html #}
+{% extends "wagtailadmin/generic/delete.html" %}
+{% load i18n wagtailadmin_tags %}
+
+{# Tùy biến thông điệp cảnh báo #}
+{% block confirmation_message %}
+    <div class="w-mb-6 w-text-center">
+        <svg class="icon icon-warning w-w-12 w-h-12 w-text-critical-200 w-mb-4" aria-hidden="true"><use href="#icon-warning"></use></svg>
+        <h2 class="w-h3">{% trans "Bạn có chắc chắn muốn xóa thông số này?" %}</h2>
+        <p class="w-text-16 w-text-text-meta w-mt-2">
+            <strong>{{ object.name }}</strong> ({{ object.group.name }})
+        </p>
+        <p class="w-text-critical-200 w-mt-4">
+            {% trans "Hành động này không thể hoàn tác và có thể ảnh hưởng đến các dữ liệu đo đạc lịch sử." %}
+        </p>
+    </div>
+{% endblock %}
+
+{# Form nút bấm (Giữ nguyên hoặc custom class) #}
+{% block form %}
+    <form action="{{ view.get_delete_url }}" method="POST" class="w-flex w-justify-center w-gap-4">
+        {% csrf_token %}
+        <button type="submit" class="button serious">{% trans 'Xóa ngay' %}</button>
+        <a href="{{ view.get_success_url }}" class="button button-secondary">{% trans "Hủy bỏ" %}</a>
+    </form>
+{% endblock %}

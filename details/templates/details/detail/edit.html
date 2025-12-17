@@ -1,0 +1,18 @@
+{# details/templates/details/detail/edit.html #}
+{% extends "wagtailadmin/generic/edit.html" %}
+{% load i18n wagtailadmin_tags %}
+
+{# Tiêu đề trang Edit #}
+{% block main_header %}
+    {% include "wagtailadmin/shared/header.html" with title=page_title subtitle=object.name icon="edit" %}
+{% endblock %}
+
+{# Form #}
+{% block before_form %}
+    {# Có thể hiển thị cảnh báo nếu đang sửa một thông số quan trọng #}
+    {% if object.is_active %}
+        <div class="w-mb-4 w-px-4 w-py-2 w-bg-info-50 w-text-info-100 w-rounded">
+            {% trans "Thông số này đang hoạt động. Cẩn trọng khi thay đổi kiểu dữ liệu." %}
+        </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,6 @@
+{# area/templates/area/admin/includes/audio_dot.html #}
+<div class="w-w-2.5 w-h-2.5 w-rounded-full {% if active %}w-bg-positive-100{% else %}w-bg-grey-200{% endif %}"
+     data-controller="w-tooltip"
+     data-w-tooltip-content-value="Audio {{ lang }}: {% if active %}Available{% else %}Missing{% endif %}"
+     data-w-tooltip-placement-value="top">
+</div>

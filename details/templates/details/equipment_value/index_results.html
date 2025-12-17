@@ -1,0 +1,45 @@
+{# details/templates/details/equipment_value/index_results.html #}
+{% extends "wagtailadmin/generic/listing_results.html" %}
+{% load i18n wagtailadmin_tags %}
+
+{# 1. Hiển thị bảng dữ liệu #}
+{% block results %}
+    <div class="w-overflow-x-auto">
+        {% component table %}
+    </div>
+{% endblock %}
+
+{# 2. Thông báo khi không có dữ liệu #}
+{% block no_results_message %}
+    {% if is_searching or is_filtering %}
+        <div class="nice-padding">
+            <h2 role="alert">
+                {% blocktrans trimmed with counter=items_count|intcomma count counter_val=items_count %}
+                    Tìm thấy {{ counter }} giá trị
+                {% plural %}
+                    Tìm thấy {{ counter }} giá trị
+                {% endblocktrans %}
+            </h2>
+            <p>{% trans "Không tìm thấy dữ liệu đo đạc nào khớp với bộ lọc." %}</p>
+        </div>
+    {% else %}
+        {# Trạng thái rỗng mặc định #}
+        <div class="nice-padding w-mt-8 w-text-center">
+            <svg class="icon icon-clipboard-list w-w-16 w-h-16 w-text-grey-300 w-mb-4" aria-hidden="true"><use href="#icon-clipboard-list"></use></svg>
+            <h3 class="w-h4">{% trans "Chưa có dữ liệu đo đạc" %}</h3>
+            <p class="w-text-text-meta">
+                {% trans "Dữ liệu sẽ xuất hiện tại đây khi được ghi nhận từ các thiết bị." %}
+            </p>
+            {# Không hiển thị nút 'Add' vì model này là Read-only #}
+        </div>
+    {% endif %}
+{% endblock %}
+
+{# 3. Phân trang #}
+{% block pagination %}
+    {% if is_paginated %}
+        <div class="nice-padding">
+            {% include "wagtailadmin/shared/pagination_nav.html" with items=page_obj linkurl=index_url %}
+        </div>
+    {% endif %}
+{% endblock %}

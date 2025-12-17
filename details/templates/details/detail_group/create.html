@@ -1,0 +1,21 @@
+{# details/templates/details/detail_group/create.html #}
+{% extends "wagtailadmin/generic/create.html" %}
+{% load i18n wagtailadmin_tags %}
+
+{# Tùy biến Header: Tiêu đề trang Add #}
+{% block main_header %}
+    {% include "wagtailadmin/shared/header.html" with title=page_title subtitle=page_subtitle icon="plus" %}
+{% endblock %}
+
+{# Chèn nội dung trước Form (Ví dụ: Hướng dẫn nhập liệu) #}
+{% block before_form %}
+    <div class="help-block help-info">
+        <svg class="icon icon-help w-w-4 w-h-4" aria-hidden="true"><use href="#icon-help"></use></svg>
+        <p>{% trans "Vui lòng chọn đúng 'Nhóm Thông số' để đảm bảo cấu trúc dữ liệu." %}</p>
+    </div>
+{% endblock %}
+
+{# Tùy biến các nút bấm (Save, Publish...) #}
+{% block extra_actions %}
+    {{ block.super }}
+{% endblock %}

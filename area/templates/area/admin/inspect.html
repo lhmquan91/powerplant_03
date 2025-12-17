@@ -1,0 +1,91 @@
+{# area/templates/area/admin/inspect.html #}
+{% extends "wagtailadmin/generic/inspect.html" %}
+{% load i18n wagtailadmin_tags static wagtailimages_tags %}
+
+{% block content %}
+    {% include "wagtailadmin/shared/header.html" with title=object.name icon="site" merged=1 %}
+    
+    <div class="w-px-5 w-pb-10">
+        {# --- PHẦN 1: THÔNG TIN COMPACT --- #}
+        <div class="w-bg-surface-page w-border w-border-border-furniture w-rounded w-shadow-sm w-mb-8 w-flex w-flex-wrap md:w-flex-nowrap">
+            <div class="w-w-full md:w-w-64 w-bg-grey-100 w-flex-shrink-0 w-border-r w-border-border-furniture w-flex w-items-center w-justify-center w-min-h-[10rem]">
+                {% if object.image %}
+                    {% image object.image width-400 as img %}
+                    <img src="{{ img.url }}" class="w-w-full w-h-full w-object-cover">
+                {% else %}
+                    <svg class="icon icon-site w-w-16 w-h-16 w-text-grey-300" aria-hidden="true"><use href="#icon-site"></use></svg>
+                {% endif %}
+            </div>
+            <div class="w-flex-1 w-p-5">
+                <div class="w-flex w-justify-between w-mb-4">
+                    <div>
+                        <h2 class="w-h3 w-mb-1">{{ object.name }}</h2>
+                        <div class="w-text-14 w-text-text-meta w-flex w-gap-4">
+                            <span class="w-font-mono w-font-bold w-text-primary">KKS: {{ object.kks_code|default:"--" }}</span>
+                            {% if object.get_parent %}
+                                <span>Trực thuộc: <a href="{% url 'wagtailsnippets_area_functionallocation:inspect' object.get_parent.id %}" class="w-underline">{{ object.get_parent.name }}</a></span>
+                            {% else %}
+                                <span class="w-text-critical-200">ROOT</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="{% url 'wagtailsnippets_area_functionallocation:edit' object.id %}" class="button button-secondary button-small"><svg class="icon icon-edit w-mr-1"><use href="#icon-edit"></use></svg> Edit</a>
+                </div>
+                <div class="w-grid w-grid-cols-1 md:w-grid-cols-2 w-gap-6">
+                    <div class="w-prose w-text-14">{{ object.description|safe|default:"<span class='w-italic'>Chưa có mô tả.</span>" }}</div>
+                    <div class="w-flex w-items-center w-gap-2">
+                        <span class="w-label-3">Audio:</span>
+                        {{ object.audio_status_display }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# --- PHẦN 2: DANH SÁCH THIẾT BỊ CON --- #}
+        <div class="w-flex w-justify-between w-items-center w-mb-4 w-border-b w-pb-2">
+            <h3 class="w-h4 w-m-0"><svg class="icon icon-cogs w-mr-2"><use href="#icon-cogs"></use></svg> Thiết bị trực thuộc ({{ equipments.paginator.count }})</h3>
+            <div class="w-flex w-bg-surface-header w-border w-rounded-sm">
+                <a href="?view=list{% if current_query_string %}&{{ current_query_string }}{% endif %}" class="w-p-1.5 {% if view_mode != 'grid' %}w-bg-surface-button-default{% endif %}"><svg class="icon icon-list-ul w-w-4 w-h-4"><use href="#icon-list-ul"></use></svg></a>
+                <a href="?view=grid{% if current_query_string %}&{{ current_query_string }}{% endif %}" class="w-p-1.5 {% if view_mode == 'grid' %}w-bg-surface-button-default{% endif %}"><svg class="icon icon-image w-w-4 w-h-4"><use href="#icon-image"></use></svg></a>
+            </div>
+        </div>
+
+        {% if equipments %}
+            {% if view_mode == 'grid' %}
+                <div class="w-grid w-grid-cols-1 md:w-grid-cols-4 w-gap-4">
+                    {% for equip in equipments %}
+                        <div class="w-bg-surface-page w-border w-rounded w-overflow-hidden w-shadow w-flex w-h-24 group relative">
+                            <div class="w-w-24 w-bg-grey-100 w-flex-center w-border-r">
+                                {% if equip.image %}{% image equip.image fill-150x150 as img %}<img src="{{ img.url }}" class="w-h-full w-object-cover">{% else %}<svg class="icon icon-cogs w-w-8 w-h-8 w-text-grey-300"><use href="#icon-cogs"></use></svg>{% endif %}
+                            </div>
+                            <div class="w-flex-1 w-p-2 w-flex w-flex-col w-justify-center">
+                                <div class="w-text-11 w-font-bold w-text-primary">{{ equip.kks_code }}</div>
+                                <div class="w-text-13 w-font-bold w-truncate">{{ equip.name }}</div>
+                                <a href="{% url 'wagtailsnippets_equipment_equipment:inspect' equip.id %}" class="w-absolute w-inset-0"></a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <table class="listing w-w-full">
+                    <thead><tr><th>Mã KKS</th><th>Tên thiết bị</th><th>Hãng SX</th></tr></thead>
+                    <tbody>
+                        {% for equip in equipments %}
+                            <tr>
+                                <td class="w-font-bold w-text-primary">{{ equip.kks_code }}</td>
+                                <td><a href="{% url 'wagtailsnippets_equipment_equipment:inspect' equip.id %}" class="w-font-bold">{{ equip.name }}</a></td>
+                                <td>{{ equip.manufacturer }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+            
+            {% if equipments.has_other_pages %}
+                <div class="w-mt-6 w-flex w-justify-center">{% include "wagtailadmin/shared/pagination_nav.html" with items=equipments link_params="view="|add:view_mode %}</div>
+            {% endif %}
+        {% else %}
+            <div class="w-p-8 w-text-center w-border w-border-dashed"><p>Chưa có thiết bị nào.</p></div>
+        {% endif %}
+    </div>
+{% endblock %}

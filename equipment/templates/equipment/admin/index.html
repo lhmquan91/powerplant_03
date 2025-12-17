@@ -1,0 +1,145 @@
+{% extends "wagtailadmin/generic/index.html" %}
+{% load i18n wagtailadmin_tags static wagtailimages_tags l10n %}
+
+{# --- 1. LOAD SCRIPT & FOOTER --- #}
+{% block extra_js %}
+    {{ block.super }}
+    <script defer src="{% versioned_static 'wagtailadmin/js/bulk-actions.js' %}"></script>
+{% endblock %}
+
+{% block bulk_actions %}
+    {% trans "Chọn tất cả" as select_all_text %}
+    {# CHỈNH SỬA: item_type là EQUIPMENT #}
+    {% include 'wagtailadmin/bulk_actions/footer.html' with select_all_obj_text=select_all_text app_label='equipment' model_name='equipment' objects=page_obj parent=None item_type="EQUIPMENT" %}
+{% endblock %}
+
+{# --- 2. PHẦN HIỂN THỊ CHÍNH --- #}
+{% block listing %}
+
+    {# Toolbar: View Switcher #}
+    <div class="w-px-4 w-pt-4 w-mb-4 w-flex w-justify-end w-items-center">
+        <label class="w-label-3 w-mr-3 w-text-text-meta">Chế độ xem:</label>
+        <div class="w-flex w-bg-surface-header w-border w-border-border-furniture w-rounded-sm w-overflow-hidden">
+            <a href="?view=list{% if current_query_string %}&{{ current_query_string }}{% endif %}" 
+               class="w-p-2 w-flex w-items-center w-justify-center w-transition {% if view_mode != 'grid' %}w-bg-surface-button-default w-text-text-button{% else %}w-bg-surface-header w-text-text-label hover:w-bg-surface-button-hover{% endif %}"
+               title="Danh sách">
+                <svg class="icon icon-list-ul w-w-4 w-h-4" aria-hidden="true"><use href="#icon-list-ul"></use></svg>
+            </a>
+            <a href="?view=grid{% if current_query_string %}&{{ current_query_string }}{% endif %}" 
+               class="w-p-2 w-flex w-items-center w-justify-center w-transition {% if view_mode == 'grid' %}w-bg-surface-button-default w-text-text-button{% else %}w-bg-surface-header w-text-text-label hover:w-bg-surface-button-hover{% endif %}"
+               title="Lưới ảnh">
+                <svg class="icon icon-image w-w-4 w-h-4" aria-hidden="true"><use href="#icon-image"></use></svg>
+            </a>
+        </div>
+    </div>
+
+    {# LOGIC PHÂN CHIA VIEW #}
+    {% if view_mode == 'grid' %}
+        
+        {# === GRID VIEW (Horizontal Card) === #}
+        <div id="listing-results" class="w-px-4 w-pb-10">
+            {% if object_list %}
+                
+                {# Select All Checkbox #}
+                <div class="w-mb-4 w-flex w-items-center">
+                     <label class="w-flex w-items-center w-cursor-pointer w-text-text-label hover:w-text-text-link-hover">
+                        {% include 'wagtailadmin/bulk_actions/select_all_checkbox_input.html' with parent=None %}
+                        <span class="w-label-3 w-font-bold w-ml-2">{% trans "Chọn tất cả" %}</span>
+                    </label>
+                </div>
+
+                {# Grid Container #}
+                <div class="w-grid w-grid-cols-1 md:w-grid-cols-3 lg:w-grid-cols-5 w-gap-4">
+                    {% for object in object_list %}
+                        {# Card Wrapper: w-h-28 để đồng bộ với Area #}
+                        <div class="w-bg-surface-page w-border w-border-border-furniture w-rounded w-overflow-hidden w-shadow hover:w-shadow-md w-transition-all w-duration-200 w-relative group w-flex w-flex-row w-h-28">
+                            
+                            {# Checkbox Item #}
+                            <div class="w-absolute w-top-1 w-left-1 w-z-20" onclick="event.stopPropagation()">
+                                <input type="checkbox" class="bulk-action-checkbox w-form-checkbox w-w-4 w-h-4 w-cursor-pointer w-shadow-sm w-border-border-furniture" 
+                                       data-bulk-action-checkbox data-object-id="{{ object.pk|unlocalize|admin_urlquote }}" aria-label="{% trans 'Select' %}">
+                            </div>
+
+                            {# --- CỘT TRÁI: HÌNH ẢNH --- #}
+                            <div class="w-w-28 w-bg-grey-100 w-flex-shrink-0 w-border-r w-border-border-furniture w-relative">
+                                <div class="w-w-full w-h-full w-flex w-items-center w-justify-center w-overflow-hidden">
+                                    {% if object.image %}
+                                        {% image object.image fill-200x200 as img %}
+                                        <img src="{{ img.url }}" alt="{{ object.name }}" class="w-w-full w-h-full w-object-cover w-transition-transform w-duration-500 group-hover:w-scale-110">
+                                    {% else %}
+                                        <svg class="icon icon-cogs w-w-8 w-h-8 w-text-grey-400" aria-hidden="true"><use href="#icon-cogs"></use></svg>
+                                    {% endif %}
+                                </div>
+                                {# Link Inspect phủ lên ảnh #}
+                                <a href="{% url 'wagtailsnippets_equipment_equipment:inspect' object.id %}" class="w-absolute w-inset-0 w-bg-black w-bg-opacity-0 group-hover:w-bg-opacity-10 w-transition-all" title="Xem chi tiết"></a>
+
+                                {# Badge KKS #}
+                                {% if object.kks_code %}
+                                    <div class="w-absolute w-bottom-0 w-right-0 w-pointer-events-none w-z-10">
+                                        <span class="w-inline-flex w-items-center w-px-1.5 w-py-0.5 w-text-11 w-font-bold w-bg-surface-menus w-text-text-label w-opacity-90 w-rounded-tl">
+                                            {{ object.kks_code }}
+                                        </span>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            {# --- CỘT PHẢI: THÔNG TIN --- #}
+                            <div class="w-flex-1 w-p-2 w-flex w-flex-col w-justify-between w-min-w-0">
+                                
+                                <div>
+                                    <h3 class="w-h5 w-text-14 w-leading-tight w-mb-1 w-truncate" title="{{ object.name }}">
+                                        {# Link Inspect ở tiêu đề #}
+                                        <a href="{% url 'wagtailsnippets_equipment_equipment:inspect' object.id %}" class="w-text-text-label hover:w-text-text-link-hover w-no-underline">
+                                            {{ object.name }}
+                                        </a>
+                                    </h3>
+                                    
+                                    {# Manufacturer/Model #}
+                                    <div class="w-text-11 w-text-text-meta w-truncate">
+                                        {{ object.manufacturer|default_if_none:"N/A" }} - {{ object.model_number|default_if_none:"N/A" }}
+                                    </div>
+                                </div>
+
+                                {# Phần dưới: Location & Specs #}
+                                <div class="w-flex w-justify-between w-items-end w-mt-1">
+                                    {# Location (Khu vực) #}
+                                    <div class="w-text-12 w-text-text-meta w-flex w-items-center w-truncate w-mr-1">
+                                        <svg class="icon icon-site w-w-3 w-h-3 w-mr-1 w-flex-shrink-0" aria-hidden="true"><use href="#icon-site"></use></svg>
+                                        <span class="w-truncate" title="{{ object.location.name|default_if_none:'Không gán' }}">
+                                            {{ object.location_link|default_if_none:"Chưa gán" }}
+                                        </span>
+                                    </div>
+                                    
+                                    {# Số lượng thông số #}
+                                    <div class="w-flex-shrink-0 w-text-11 w-font-bold w-text-secondary">
+                                        {{ object.specs_count }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {# Phân trang Grid #}
+                {% if page_obj.has_other_pages %}
+                    <div class="w-mt-8 w-pt-4 w-border-t w-border-border-furniture nice-padding">
+                        {% include "wagtailadmin/shared/pagination_nav.html" with items=page_obj link_params="view=grid" %}
+                    </div>
+                {% endif %}
+            {% else %}
+                {# Empty State #}
+                <div class="w-p-10 w-text-center w-text-text-meta w-bg-surface-page w-rounded w-border w-border-dashed w-border-border-furniture">
+                    <p>{% trans "Không có thiết bị nào được tìm thấy." %}</p>
+                </div>
+            {% endif %}
+        </div>
+
+    {% else %}
+
+        {# === LIST VIEW (NATIVE) === #}
+        {# Wagtail tự render table với các cột đã định nghĩa trong wagtail_hooks.py #}
+        {{ block.super }}
+
+    {% endif %}
+
+{% endblock %}

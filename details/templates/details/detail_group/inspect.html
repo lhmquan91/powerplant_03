@@ -1,0 +1,60 @@
+{# details/templates/details/detail_group/inspect.html #}
+{% extends "wagtailadmin/generic/inspect.html" %}
+{% load i18n wagtailadmin_tags %}
+
+{# Header: Tên object và các nút Action (Edit/Delete) #}
+{% block main_header %}
+    {% include "wagtailadmin/shared/header.html" with title=object.name icon="doc-full-inverse" merged=1 %}
+{% endblock %}
+
+{% block main_content %}
+    <div class="w-px-5 w-pb-10">
+        {# --- BLOCK 1: THÔNG TIN CƠ BẢN --- #}
+        <div class="w-bg-surface-page w-border w-border-border-furniture w-rounded w-p-5 w-mb-6 w-shadow-sm">
+            <h3 class="w-h4 w-mb-4 w-border-b w-border-border-furniture w-pb-2">{% trans "Thông tin chung" %}</h3>
+            
+            {# Sử dụng dl/dt/dd để hiển thị key-value đẹp mắt #}
+            <dl class="w-grid w-grid-cols-1 md:w-grid-cols-2 w-gap-4">
+                <div>
+                    <dt class="w-label-3 w-text-text-meta">{% trans "Tên thông số" %}</dt>
+                    <dd class="w-text-16 w-font-bold">{{ object.name }}</dd>
+                </div>
+                <div>
+                    <dt class="w-label-3 w-text-text-meta">{% trans "Nhóm (Group)" %}</dt>
+                    <dd class="w-text-16">
+                        <a href="{% url 'wagtailsnippets_details_detailgroup:inspect' object.group.id %}" class="w-text-text-link-default hover:w-underline">
+                            {{ object.group.name }}
+                        </a>
+                    </dd>
+                </div>
+                <div>
+                    <dt class="w-label-3 w-text-text-meta">{% trans "Đơn vị" %}</dt>
+                    <dd class="w-font-mono">{{ object.unit|default:"-" }}</dd>
+                </div>
+                <div>
+                    <dt class="w-label-3 w-text-text-meta">{% trans "Trạng thái" %}</dt>
+                    <dd>
+                        {% if object.is_active %}
+                            <span class="w-status w-status--label w-bg-positive-50 w-text-positive-100">{% trans "Active" %}</span>
+                        {% else %}
+                            <span class="w-status w-status--label w-bg-critical-50 w-text-critical-200">{% trans "Inactive" %}</span>
+                        {% endif %}
+                    </dd>
+                </div>
+            </dl>
+        </div>
+
+        {# --- BLOCK 2: CÁC GIÁ TRỊ ĐÃ ĐO (Nếu có liên kết) --- #}
+        {# Đây là ví dụ mở rộng: Hiển thị các EquipmentValue liên quan #}
+        {% if object.equipmentvalue_set.exists %}
+            <div class="w-bg-surface-page w-border w-border-border-furniture w-rounded w-overflow-hidden">
+                <div class="w-bg-surface-header w-px-4 w-py-3 w-border-b w-border-border-furniture">
+                    <h3 class="w-h5 w-m-0">{% trans "Lịch sử đo đạc" %}</h3>
+                </div>
+                <div class="w-p-4">
+                    <p class="w-text-text-meta">Đang được sử dụng bởi {{ object.equipmentvalue_set.count }} thiết bị.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

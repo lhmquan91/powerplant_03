@@ -1,0 +1,14 @@
+{# area/templates/area/admin/create.html #}
+{% extends "wagtailadmin/generic/create.html" %}
+{% load i18n wagtailadmin_tags %}
+
+{% block main_header %}
+    {% include "wagtailadmin/shared/header.html" with title="Thêm Khu vực / Hệ thống mới" icon="plus" %}
+{% endblock %}
+
+{% block before_form %}
+    <div class="help-block help-info">
+        <svg class="icon icon-help w-w-4 w-h-4"><use href="#icon-help"></use></svg>
+        <p>{% trans "Lưu ý: Bạn đang tạo một node mới trong cây hệ thống. Hãy xác định đúng vị trí cha (Parent) trong tab 'Định danh'." %}</p>
+    </div>
+{% endblock %}

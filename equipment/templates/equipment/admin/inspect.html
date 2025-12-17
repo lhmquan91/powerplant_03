@@ -1,0 +1,171 @@
+{% extends "wagtailadmin/generic/inspect.html" %}
+{% load i18n wagtailadmin_tags static wagtailimages_tags %}
+
+{% block content %}
+    
+    {# --- HEADER --- #}
+    {% include "wagtailadmin/shared/header.html" with title=object.name icon="cogs" merged=1 %}
+    
+    <div class="w-px-5 w-pb-10">
+
+        {# --- INFO BAR --- #}
+        <div class="w-bg-surface-header w-border w-border-border-furniture w-rounded w-p-4 w-mb-6 w-flex w-flex-wrap w-gap-6 w-items-center">
+            
+            {# Mã KKS #}
+            <div class="w-flex w-flex-col">
+                <span class="w-label-3 w-text-text-meta w-uppercase">Mã KKS</span>
+                <span class="w-text-16 w-font-bold w-font-mono w-text-primary">
+                    {{ object.kks_code|default:"--" }}
+                </span>
+            </div>
+
+            {# Hãng sản xuất #}
+            <div class="w-flex w-flex-col">
+                <span class="w-label-3 w-text-text-meta w-uppercase">Hãng SX / Model</span>
+                <span class="w-text-16 w-font-bold w-text-text-label">
+                    {{ object.manufacturer|default:"N/A" }} / {{ object.model_number|default:"N/A" }}
+                </span>
+            </div>
+
+            {# Thuộc Khu vực #}
+            <div class="w-flex w-flex-col">
+                <span class="w-label-3 w-text-text-meta w-uppercase">Thuộc hệ thống</span>
+                <div class="w-flex w-items-center w-mt-1">
+                    {% if object.location %}
+                        <svg class="icon icon-site w-w-4 w-h-4 w-mr-1 w-text-text-meta" aria-hidden="true"><use href="#icon-site"></use></svg>
+                        {# Link trỏ về trang inspect của FunctionalLocation #}
+                        <a href="{% url 'wagtailsnippets_area_functionallocation:inspect' object.location.id %}" class="w-font-medium w-text-text-link-default hover:w-text-text-link-hover">
+                            {{ object.location.name }}
+                        </a>
+                    {% else %}
+                        <span class="w-status w-status--label w-bg-warning-50 w-text-warning-200">Chưa gán</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Nút Action #}
+            <div class="w-ml-auto w-flex w-gap-3">
+                <a href="{% url 'wagtailsnippets_equipment_equipment:edit' object.id %}" class="button button-secondary button-small">
+                    <svg class="icon icon-edit w-w-3 w-h-3 w-mr-1" aria-hidden="true"><use href="#icon-edit"></use></svg>
+                    {% trans "Chỉnh sửa" %}
+                </a>
+            </div>
+        </div>
+
+        {# --- 3. MAIN LAYOUT: 2 Columns --- #}
+        <div class="w-grid w-grid-cols-1 lg:w-grid-cols-3 w-gap-8">
+
+            {# === LEFT COLUMN: Media & Docs === #}
+            <div class="w-col-span-1 w-space-y-6">
+                
+                {# A. Hình ảnh thiết bị #}
+                <div class="w-bg-surface-page w-border w-border-border-furniture w-rounded w-overflow-hidden w-shadow-sm">
+                    <div class="w-aspect-square w-bg-grey-100 w-flex w-items-center w-justify-center w-relative w-overflow-hidden">
+                        {% if object.image %}
+                            {% image object.image width-600 as img %}
+                            <img src="{{ img.url }}" alt="{{ object.name }}" class="w-w-full w-h-full w-object-cover">
+                        {% else %}
+                            <div class="w-text-center">
+                                <svg class="icon icon-cogs w-w-16 w-h-16 w-text-grey-300 w-mb-2" aria-hidden="true"><use href="#icon-cogs"></use></svg>
+                                <p class="w-text-12 w-text-text-meta">Chưa có ảnh</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# B. Tài liệu PDF #}
+                <div class="w-space-y-3">
+                    <h3 class="w-label-3 w-text-text-meta w-uppercase w-mb-1">Tài liệu kỹ thuật</h3>
+                    
+                    {# Tài liệu Vận hành #}
+                    {% if object.operation_manual %}
+                        <a href="{{ object.operation_manual.file.url }}" target="_blank" class="w-flex w-items-center w-p-3 w-bg-surface-page w-border w-border-border-furniture w-rounded hover:w-border-secondary hover:w-text-secondary w-transition">
+                            <svg class="icon icon-doc-full w-w-5 w-h-5 w-mr-3 w-text-secondary" aria-hidden="true"><use href="#icon-doc-full"></use></svg>
+                            <div class="w-flex-1">
+                                <h4 class="w-text-14 w-font-bold w-mb-0.5">Vận hành (Operation Manual)</h4>
+                            </div>
+                            <svg class="icon icon-link-external w-w-4 w-h-4 w-text-text-meta" aria-hidden="true"><use href="#icon-link-external"></use></svg>
+                        </a>
+                    {% endif %}
+                    
+                    {# Tài liệu Bảo trì #}
+                    {% if object.maintenance_manual %}
+                        <a href="{{ object.maintenance_manual.file.url }}" target="_blank" class="w-flex w-items-center w-p-3 w-bg-surface-page w-border w-border-border-furniture w-rounded hover:w-border-secondary hover:w-text-secondary w-transition">
+                            <svg class="icon icon-doc-empty-inverse w-w-5 w-h-5 w-mr-3 w-text-info-100" aria-hidden="true"><use href="#icon-doc-empty-inverse"></use></svg>
+                            <div class="w-flex-1">
+                                <h4 class="w-text-14 w-font-bold w-mb-0.5">Bảo trì (Maintenance Manual)</h4>
+                            </div>
+                            <svg class="icon icon-link-external w-w-4 w-h-4 w-text-text-meta" aria-hidden="true"><use href="#icon-link-external"></use></svg>
+                        </a>
+                    {% endif %}
+                </div>
+                
+                {# C. Audio Player #}
+                <div class="w-bg-surface-page w-border w-border-border-furniture w-rounded w-p-4 w-shadow-sm">
+                    <h3 class="w-label-3 w-text-text-meta w-uppercase w-mb-3 w-flex w-items-center">
+                        <svg class="icon icon-media w-w-3 w-h-3 w-mr-2" aria-hidden="true"><use href="#icon-media"></use></svg>
+                        TTS (Tiếng Việt)
+                    </h3>
+                    {% if object.audio_vi %}
+                        <audio controls class="w-w-full w-h-8">
+                            <source src="{{ object.audio_vi.url }}" type="audio/mpeg">
+                        </audio>
+                    {% else %}
+                        <p class="w-text-13 w-italic w-text-text-placeholder">Chưa có file âm thanh mô tả.</p>
+                    {% endif %}
+                </div>
+
+            </div>
+
+            {# === RIGHT COLUMN: StreamField & Description === #}
+            <div class="w-col-span-1 lg:w-col-span-2 w-space-y-6">
+
+                {# A. Mô tả / Nguyên lý hoạt động #}
+                <div class="w-bg-surface-page w-border w-border-border-furniture w-rounded w-p-6 w-shadow-sm">
+                    <h3 class="w-h4 w-mb-3 w-border-b w-border-border-furniture w-pb-2">Nguyên lý hoạt động & Mô tả</h3>
+                    <div class="w-prose w-max-w-none w-text-text-context">
+                        {% if object.description %}
+                            {{ object.description|safe }}
+                        {% else %}
+                            <p class="w-text-text-meta w-italic">Chưa có mô tả nguyên lý hoạt động cho thiết bị này.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# B. Bảng Thông số kỹ thuật (StreamField) #}
+                <div class="w-bg-surface-page w-border w-border-border-furniture w-rounded w-overflow-hidden w-shadow-sm">
+                    <div class="w-bg-surface-header w-px-4 w-py-3 w-border-b w-border-border-furniture">
+                        <h3 class="w-h5 w-m-0">Thông số kỹ thuật</h3>
+                    </div>
+                    
+                    {% if object.specs %}
+                        <div class="w-p-4 w-overflow-x-auto">
+                            <table class="listing w-w-full">
+                                <thead>
+                                    <tr>
+                                        <th class="w-w-64">Tên thông số</th>
+                                        <th class="w-w-28">Giá trị</th>
+                                        <th class="w-w-20">Đơn vị</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for block in object.specs %}
+                                        <tr class="{% if block.value.is_critical %}w-bg-warning-50 w-border-l-4 w-border-warning-100{% endif %}">
+                                            <td class="w-font-bold">{{ block.value.param }}</td>
+                                            <td class="w-font-mono w-text-text-label">{{ block.value.value }}</td>
+                                            <td class="w-text-text-meta">{{ block.value.unit|default:"-" }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="w-p-6 w-text-center">
+                            <p class="w-text-text-meta">Không có thông số kỹ thuật chi tiết.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

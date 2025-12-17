@@ -1,0 +1,19 @@
+{# details/templates/details/detail_group/index.html #}
+{% extends "wagtailadmin/generic/index.html" %}
+{% load i18n wagtailadmin_tags %}
+
+{% block titletag %}{{ view.get_page_title }} - {{ block.super }}{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script defer src="{% versioned_static 'wagtailadmin/js/bulk-actions.js' %}"></script>
+{% endblock %}
+
+{# KHU VỰC LISTING CHÍNH #}
+{% block listing %}
+    {# ID này RẤT QUAN TRỌNG: Wagtail AJAX sẽ tìm ID này để thay thế nội dung #}
+    <div id="listing-results">
+        {# Include file results tách biệt #}
+        {% include "details/detail/index_results.html" %}
+    </div>
+{% endblock %}

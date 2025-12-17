@@ -1,0 +1,4 @@
+{# area/templates/area/admin/usage.html #}
+{% extends "wagtailadmin/generic/usage.html" %}
+{% load wagtailadmin_tags %}
+{% block main_header %}{% include "wagtailadmin/shared/header.html" with title="Sử dụng: "|add:object.name icon="doc-full-inverse" %}{% endblock %}

@@ -1,0 +1,44 @@
+{# area/templates/area/admin/index.html #}
+{% extends "wagtailadmin/generic/index.html" %}
+{% load i18n wagtailadmin_tags static wagtailimages_tags l10n %}
+
+{% block titletag %}{{ view.get_page_title }} - {{ block.super }}{% endblock %}
+
+{# 1. Load Script Bulk Actions #}
+{% block extra_js %}
+    {{ block.super }}
+    <script defer src="{% versioned_static 'wagtailadmin/js/bulk-actions.js' %}"></script>
+{% endblock %}
+
+{# 2. Khai báo Footer Action #}
+{% block bulk_actions %}
+    {% trans "Chọn tất cả" as select_all_text %}
+    {% include 'wagtailadmin/bulk_actions/footer.html' with select_all_obj_text=select_all_text app_label='area' model_name='functionallocation' objects=page_obj parent=None item_type="FUNCTIONALLOCATION" %}
+{% endblock %}
+
+{# 3. Khu vực hiển thị chính #}
+{% block listing %}
+
+    {# Toolbar: View Switcher (Luôn hiển thị) #}
+    <div class="w-px-4 w-pt-4 w-mb-4 w-flex w-justify-end w-items-center">
+        <label class="w-label-3 w-mr-3 w-text-text-meta">Chế độ xem:</label>
+        <div class="w-flex w-bg-surface-header w-border w-border-border-furniture w-rounded-sm w-overflow-hidden">
+            <a href="?view=list{% if current_query_string %}&{{ current_query_string }}{% endif %}" 
+               class="w-p-2 w-flex w-items-center w-justify-center w-transition {% if view_mode != 'grid' %}w-bg-surface-button-default w-text-text-button{% else %}w-bg-surface-header w-text-text-label hover:w-bg-surface-button-hover{% endif %}"
+               title="Danh sách">
+                <svg class="icon icon-list-ul w-w-4 w-h-4" aria-hidden="true"><use href="#icon-list-ul"></use></svg>
+            </a>
+            <a href="?view=grid{% if current_query_string %}&{{ current_query_string }}{% endif %}" 
+               class="w-p-2 w-flex w-items-center w-justify-center w-transition {% if view_mode == 'grid' %}w-bg-surface-button-default w-text-text-button{% else %}w-bg-surface-header w-text-text-label hover:w-bg-surface-button-hover{% endif %}"
+               title="Lưới ảnh">
+                <svg class="icon icon-image w-w-4 w-h-4" aria-hidden="true"><use href="#icon-image"></use></svg>
+            </a>
+        </div>
+    </div>
+
+    {# ID này để AJAX tìm và thay thế nội dung #}
+    <div id="listing-results">
+        {% include "area/admin/index_results.html" %}
+    </div>
+
+{% endblock %}

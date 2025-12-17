@@ -1,0 +1,18 @@
+{# area/templates/area/admin/delete.html #}
+{% extends "wagtailadmin/generic/delete.html" %}
+{% load i18n wagtailadmin_tags %}
+
+{% block confirmation_message %}
+    <div class="w-text-center w-mb-6">
+        <svg class="icon icon-warning w-w-16 w-h-16 w-text-critical-200 w-mb-4"><use href="#icon-warning"></use></svg>
+        <h2 class="w-h3">{% trans "Cảnh báo Xóa Khu vực" %}</h2>
+        <p class="w-text-16 w-mt-2">Bạn đang xóa: <strong>{{ object.name }}</strong> ({{ object.kks_code }})</p>
+        
+        {% if object.get_children %}
+            <div class="w-bg-critical-50 w-text-critical-200 w-p-4 w-rounded w-mt-4 w-text-left w-inline-block">
+                <strong>QUAN TRỌNG:</strong> Khu vực này đang chứa <strong>{{ object.get_children.count }}</strong> khu vực con.
+                <br>Nếu bạn xóa, toàn bộ nhánh con và các thiết bị liên quan cũng sẽ bị xóa theo!
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{# details/templates/details/detail_group/usage.html #}
+{% extends "wagtailadmin/generic/usage.html" %}
+{% load i18n wagtailadmin_tags %}
+
+{% block main_header %}
+    {% include "wagtailadmin/shared/header.html" with title="Sử dụng: "|add:object.name icon="doc-full-inverse" %}
+{% endblock %}
+
+{% block main_content %}
+    <div class="nice-padding">
+        <p>{% trans "Thông số này đang được tham chiếu bởi các đối tượng sau:" %}</p>
+        {# Wagtail sẽ tự render bảng usage_table ở đây #}
+        {{ block.super }}
+    </div>
+{% endblock %}

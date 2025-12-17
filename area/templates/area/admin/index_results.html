@@ -1,0 +1,117 @@
+{# area/templates/area/admin/index_results.html #}
+{% extends "wagtailadmin/generic/listing_results.html" %}
+{% load i18n wagtailadmin_tags wagtailimages_tags l10n %}
+
+{# --- 1. LOAD LIBRARY CỦA BẠN --- #}
+{% load area_tags %} 
+
+{% block results %}
+    
+    {% if view_mode == 'grid' %}
+        <div class="w-px-4 w-pb-10">
+            {% if object_list %}
+                {# Toolbar Select All #}
+                <div class="w-mb-4 w-flex w-items-center">
+                     <label class="w-flex w-items-center w-cursor-pointer w-text-text-label hover:w-text-text-link-hover">
+                        {% include 'wagtailadmin/bulk_actions/select_all_checkbox_input.html' with parent=None %}
+                        <span class="w-label-3 w-font-bold w-ml-2">{% trans "Chọn tất cả" %}</span>
+                    </label>
+                </div>
+
+                <div class="w-grid w-grid-cols-1 md:w-grid-cols-3 lg:w-grid-cols-5 w-gap-4">
+                    {% for object in object_list %}
+                        <div class="w-bg-surface-page w-border w-border-border-furniture w-rounded w-shadow hover:w-shadow-md w-transition-all w-duration-200 w-relative group w-flex w-flex-row w-h-28">
+                            
+                            {# --- CHECKBOX --- #}
+                            <div class="w-absolute w-top-1 w-left-1 w-z-30" onclick="event.stopPropagation()">
+                                <input type="checkbox" class="bulk-action-checkbox w-form-checkbox w-w-4 w-h-4 w-cursor-pointer w-shadow-sm w-border-border-furniture" 
+                                       data-bulk-action-checkbox data-object-id="{{ object.pk|unlocalize|admin_urlquote }}" aria-label="{% trans 'Select' %}">
+                            </div>
+
+                            {# --- 2. ACTION MENU (ĐÃ SỬA LỖI FLATATT) --- #}
+                            <div class="w-absolute w-top-1 w-right-1 w-z-30" onclick="event.stopPropagation()">
+                                <div data-controller="w-dropdown" class="w-dropdown w-dropdown--right">
+                                    
+                                    {# Nút 3 chấm #}
+                                    <button type="button" class="w-dropdown__toggle w-flex w-items-center w-justify-center w-w-6 w-h-6 w-text-text-meta hover:w-text-text-label hover:w-bg-surface-button-hover w-rounded w-transition" 
+                                            data-w-dropdown-target="toggle" aria-label="{% trans 'Actions' %}">
+                                        <svg class="icon icon-dots-horizontal w-w-4 w-h-4" aria-hidden="true"><use href="#icon-dots-horizontal"></use></svg>
+                                    </button>
+                                    
+                                    {# Nội dung menu xổ xuống #}
+                                    <div class="w-dropdown__content w-bg-surface-menus w-border w-border-border-furniture w-rounded w-shadow-lg w-min-w-[160px] w-py-1" 
+                                        data-w-dropdown-target="content">
+                                        
+                                        {% get_snippet_buttons view object as buttons %}
+                                        
+                                        {% for button in buttons %}
+                                            {# Render thẻ A đơn giản, không thêm class Tailwind thủ công nữa #}
+                                            {# Styles sẽ được kế thừa từ w-dropdown__content của Wagtail #}
+                                            
+                                            <a href="{{ button.url }}" 
+                                            class="{{ button.classname }}" 
+                                            {{ button.base_attrs_string }}>
+                                            
+                                                {% if button.icon_name %}
+                                                    {# Cấu trúc Icon chuẩn của Wagtail #}
+                                                    <svg class="icon icon-{{ button.icon_name }} icon" aria-hidden="true">
+                                                        <use href="#icon-{{ button.icon_name }}"></use>
+                                                    </svg>
+                                                {% endif %}
+                                                
+                                                {{ button.label }}
+                                            </a>
+
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# --- 3. CỘT TRÁI: ẢNH --- #}
+                            <div class="w-w-28 w-bg-grey-100 w-relative w-flex-shrink-0 w-border-r w-border-border-furniture">
+                                <div class="w-w-full w-h-full w-flex w-items-center w-justify-center">
+                                    {% if object.image %}
+                                        {% image object.image fill-200x200 as img %}
+                                        <img src="{{ img.url }}" class="w-w-full w-h-full w-object-cover group-hover:w-scale-110 w-transition-transform">
+                                    {% else %}
+                                        <svg class="icon icon-site w-w-8 w-h-8 w-text-grey-400" aria-hidden="true"><use href="#icon-site"></use></svg>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'wagtailsnippets_area_functionallocation:inspect' object.id %}" class="w-absolute w-inset-0 w-z-10" title="Xem chi tiết"></a>
+                                {% if object.kks_code %}
+                                    <span class="w-absolute w-bottom-0 w-right-0 w-px-1.5 w-py-0.5 w-text-11 w-font-bold w-bg-surface-menus w-text-text-label w-opacity-90 w-rounded-tl w-z-20">{{ object.kks_code }}</span>
+                                {% endif %}
+                            </div>
+
+                            {# --- 4. CỘT PHẢI: THÔNG TIN --- #}
+                            <div class="w-flex-1 w-p-2 w-flex w-flex-col w-justify-between w-min-w-0">
+                                <div class="w-pr-6">
+                                    <h3 class="w-h5 w-text-14 w-leading-tight w-mb-1 w-truncate" title="{{ object.name }}">
+                                        <a href="{% url 'wagtailsnippets_area_functionallocation:inspect' object.id %}" class="w-text-text-label hover:w-text-text-link-hover w-relative w-z-20">{{ object.name }}</a>
+                                    </h3>
+                                    <div class="w-text-11 w-text-text-meta w-font-mono">ID: {{ object.pk }}</div>
+                                </div>
+                                <div class="w-flex w-justify-between w-items-end w-mt-1">
+                                    <div class="w-text-12 w-text-text-meta w-truncate w-mr-1">
+                                        {% if object.get_parent %}
+                                            <span title="{{ object.get_parent.name }}">↳ {{ object.get_parent.name }}</span>
+                                        {% else %}
+                                            <span class="w-text-critical-200 w-font-bold">ROOT</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="w-flex-shrink-0">{{ object.audio_status_display }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    {% else %}
+        {# LIST VIEW #}
+        <div class="w-overflow-x-auto">
+            {% component table %}
+        </div>
+    {% endif %}
+
+{% endblock %}
