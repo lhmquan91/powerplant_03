@@ -1,19 +1,24 @@
 {# details/templates/details/detail/index.html #}
 {% extends "wagtailadmin/generic/index.html" %}
-{% load i18n wagtailadmin_tags %}
+{% load i18n wagtailadmin_tags core_tags %}
 
-{% block titletag %}{{ view.get_page_title }} - {{ block.super }}{% endblock %}
-
-{% block extra_js %}
-    {{ block.super }}
-    <script defer src="{% versioned_static 'wagtailadmin/js/bulk-actions.js' %}"></script>
+{# --- 1. TITLE --- #}
+{% block titletag %}
+    {{ view.get_page_title }} - {{ block.super }}
 {% endblock %}
 
-{# KHU VỰC LISTING CHÍNH #}
+{# --- 2. EXTRA JS --- #}
+{% block extra_js %}
+    {{ block.super }}
+    {# Script hỗ trợ bulk actions (chọn nhiều dòng để xóa) #}
+    <script src="{% versioned_static 'wagtailadmin/js/bulk-actions.js' %}"></script>
+{% endblock %}
+
+{# --- 3. LISTING AREA --- #}
 {% block listing %}
-    {# ID này RẤT QUAN TRỌNG: Wagtail AJAX sẽ tìm ID này để thay thế nội dung #}
-    <div id="listing-results">
-        {# Include file results tách biệt #}
+    {# ID 'listing-results' là bắt buộc để AJAX search hoạt động #}
+    <div id="listing-results" class="w-relative">
+        {# Include file kết quả (đã làm ở bước trước) #}
         {% include "details/detail/index_results.html" %}
     </div>
 {% endblock %}

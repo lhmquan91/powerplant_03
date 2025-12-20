@@ -1,15 +1,18 @@
-{# details/templates/details/detail/usage.html #}
-{% extends "wagtailadmin/generic/usage.html" %}
-{% load i18n wagtailadmin_tags %}
+{# details/templates/details/detail/history.html #}
+{% extends "wagtailadmin/generic/history.html" %}
+{% load i18n wagtailadmin_tags core_tags %}
 
+{# Override Header để dùng Label động #}
 {% block main_header %}
-    {% include "wagtailadmin/shared/header.html" with title="Sử dụng: "|add:object.name icon="doc-full-inverse" %}
+    {% include "wagtailadmin/shared/header.html" with title=page_title subtitle=object.name icon="history" %}
 {% endblock %}
 
-{% block main_content %}
-    <div class="nice-padding">
-        <p>{% trans "Thông số này đang được tham chiếu bởi các đối tượng sau:" %}</p>
-        {# Wagtail sẽ tự render bảng usage_table ở đây #}
+{% block history_list %}
+    {% if history_items %}
         {{ block.super }}
-    </div>
+    {% else %}
+        <div class="nice-padding">
+            <p>{% get_label 'details' 'msg_no_history' 'Chưa có lịch sử thay đổi nào.' %}</p>
+        </div>
+    {% endif %}
 {% endblock %}

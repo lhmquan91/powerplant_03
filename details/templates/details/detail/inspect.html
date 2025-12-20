@@ -1,58 +1,162 @@
 {# details/templates/details/detail/inspect.html #}
 {% extends "wagtailadmin/generic/inspect.html" %}
-{% load i18n wagtailadmin_tags %}
+{% load i18n wagtailadmin_tags core_tags %}
 
-{# Header: Tên object và các nút Action (Edit/Delete) #}
 {% block main_header %}
-    {% include "wagtailadmin/shared/header.html" with title=object.name icon="doc-full-inverse" merged=1 %}
+    {% include "wagtailadmin/shared/header.html" with title=object icon="doc-full-inverse" merged=1 %}
 {% endblock %}
 
 {% block main_content %}
     <div class="w-px-5 w-pb-10">
-        {# --- BLOCK 1: THÔNG TIN CƠ BẢN --- #}
+        
+        {# --- BLOCK 1: THÔNG TIN CƠ BẢN (CORE) --- #}
         <div class="w-bg-surface-page w-border w-border-border-furniture w-rounded w-p-5 w-mb-6 w-shadow-sm">
-            <h3 class="w-h4 w-mb-4 w-border-b w-border-border-furniture w-pb-2">{% trans "Thông tin chung" %}</h3>
+            <div class="w-flex w-items-center w-mb-4 w-border-b w-border-border-furniture w-pb-2">
+                <svg class="icon icon-site w-w-4 w-h-4 w-mr-2" aria-hidden="true"><use href="#icon-site"></use></svg>
+                <h3 class="w-h4 w-m-0">
+                    {% get_label 'details' 'ui_inspect_core_info' 'Thông tin cơ bản (Core)' %}
+                </h3>
+            </div>
             
-            {# Sử dụng dl/dt/dd để hiển thị key-value đẹp mắt #}
-            <dl class="w-grid w-grid-cols-1 md:w-grid-cols-2 w-gap-4">
+            <dl class="w-grid w-grid-cols-1 md:w-grid-cols-2 w-gap-6">
+                {# Tiếng Việt #}
                 <div>
-                    <dt class="w-label-3 w-text-text-meta">{% trans "Tên thông số" %}</dt>
-                    <dd class="w-text-16 w-font-bold">{{ object.name }}</dd>
+                    <dt class="w-label-3 w-text-text-meta w-mb-1">
+                        🇻🇳 {% get_label 'details' 'col_name_vi' 'Tiếng Việt' %}
+                    </dt>
+                    <dd class="w-text-16 w-font-bold">{{ object.name_vi|default:"-" }}</dd>
                 </div>
+
+                {# Tiếng Anh #}
                 <div>
-                    <dt class="w-label-3 w-text-text-meta">{% trans "Nhóm (Group)" %}</dt>
-                    <dd class="w-text-16">
-                        <a href="{% url 'wagtailsnippets_details_detailgroup:inspect' object.group.id %}" class="w-text-text-link-default hover:w-underline">
-                            {{ object.group.name }}
-                        </a>
-                    </dd>
+                    <dt class="w-label-3 w-text-text-meta w-mb-1">
+                        🇺🇸 {% get_label 'details' 'col_name_en' 'Tiếng Anh' %}
+                    </dt>
+                    <dd class="w-text-16">{{ object.name_en|default:"-" }}</dd>
                 </div>
-                <div>
-                    <dt class="w-label-3 w-text-text-meta">{% trans "Đơn vị" %}</dt>
-                    <dd class="w-font-mono">{{ object.unit|default:"-" }}</dd>
-                </div>
-                <div>
-                    <dt class="w-label-3 w-text-text-meta">{% trans "Trạng thái" %}</dt>
+
+                {# Đơn vị #}
+                <div class="md:w-col-span-2">
+                    <dt class="w-label-3 w-text-text-meta w-mb-1">
+                        {% get_label 'details' 'col_unit' 'Đơn vị mặc định' %}
+                    </dt>
                     <dd>
-                        {% if object.is_active %}
-                            <span class="w-status w-status--label w-bg-positive-50 w-text-positive-100">{% trans "Active" %}</span>
-                        {% else %}
-                            <span class="w-status w-status--label w-bg-critical-50 w-text-critical-200">{% trans "Inactive" %}</span>
-                        {% endif %}
+                        <span class="w-font-mono w-text-14 w-bg-surface-menu w-text-text-label w-inline-block w-px-2 w-py-1 w-rounded w-border w-border-border-furniture">
+                            {{ object.default_unit|default:"-" }}
+                        </span>
                     </dd>
                 </div>
             </dl>
         </div>
 
-        {# --- BLOCK 2: CÁC GIÁ TRỊ ĐÃ ĐO (Nếu có liên kết) --- #}
-        {# Đây là ví dụ mở rộng: Hiển thị các EquipmentValue liên quan #}
+        {# --- BLOCK 2: TIẾNG TRUNG & PINYIN --- #}
+        {# Chỉ hiển thị nếu ngôn ngữ 'zh' đang active #}
+        {% if 'zh' in active_codes %}
+        <div class="w-bg-surface-page w-border w-border-border-furniture w-rounded w-p-5 w-mb-6 w-shadow-sm">
+            <div class="w-flex w-items-center w-mb-4 w-border-b w-border-border-furniture w-pb-2">
+                <span class="w-mr-2 w-text-20">🇨🇳</span>
+                <h3 class="w-h4 w-m-0">
+                    {% get_label 'details' 'ui_inspect_zh_info' 'Tiếng Trung (Chinese)' %}
+                </h3>
+            </div>
+            
+            <dl class="w-grid w-grid-cols-1 md:w-grid-cols-2 w-gap-6">
+                {# Chữ Hán #}
+                <div>
+                    <dt class="w-label-3 w-text-text-meta w-mb-1">
+                        {% get_label 'details' 'col_name_zh' 'Chữ Hán (Simplified)' %}
+                    </dt>
+                    <dd class="w-text-20 w-font-serif w-leading-normal">{{ object.name_zh|default:"-" }}</dd>
+                </div>
+
+                {# Pinyin #}
+                <div>
+                    <dt class="w-label-3 w-text-text-meta w-mb-1">
+                        {% get_label 'details' 'col_name_zh_pinyin' 'Phiên âm (Pinyin)' %}
+                    </dt>
+                    <dd class="w-text-16 w-italic w-text-text-meta">{{ object.name_zh_pinyin|default:"-" }}</dd>
+                </div>
+            </dl>
+        </div>
+        {% endif %}
+
+        {# --- BLOCK 3: ĐÔNG NAM Á (SEA) --- #}
+        {# Kiểm tra xem có ngôn ngữ SEA nào active không #}
+        {% if 'th' in active_codes or 'lo' in active_codes or 'km' in active_codes or 'id' in active_codes or 'ms' in active_codes or 'my' in active_codes or 'fil' in active_codes %}
+        <div class="w-bg-surface-page w-border w-border-border-furniture w-rounded w-p-5 w-mb-6 w-shadow-sm">
+            <div class="w-flex w-items-center w-mb-4 w-border-b w-border-border-furniture w-pb-2">
+                <svg class="icon icon-globe w-w-4 w-h-4 w-mr-2" aria-hidden="true"><use href="#icon-globe"></use></svg>
+                <h3 class="w-h4 w-m-0">
+                    {% get_label 'details' 'ui_inspect_sea_info' 'Khu vực Đông Nam Á' %}
+                </h3>
+            </div>
+            
+            <dl class="w-grid w-grid-cols-1 md:w-grid-cols-3 w-gap-6">
+                {% if 'th' in active_codes %}
+                <div>
+                    <dt class="w-label-3 w-text-text-meta w-mb-1">🇹🇭 Thai</dt>
+                    <dd class="w-text-15">{{ object.name_th|default:"-" }}</dd>
+                </div>
+                {% endif %}
+                
+                {% if 'lo' in active_codes %}
+                <div>
+                    <dt class="w-label-3 w-text-text-meta w-mb-1">🇱🇦 Lao</dt>
+                    <dd class="w-text-15">{{ object.name_lo|default:"-" }}</dd>
+                </div>
+                {% endif %}
+
+                {% if 'km' in active_codes %}
+                <div>
+                    <dt class="w-label-3 w-text-text-meta w-mb-1">🇰🇭 Khmer</dt>
+                    <dd class="w-text-15">{{ object.name_km|default:"-" }}</dd>
+                </div>
+                {% endif %}
+
+                {% if 'id' in active_codes %}
+                <div>
+                    <dt class="w-label-3 w-text-text-meta w-mb-1">🇮🇩 Indonesia</dt>
+                    <dd class="w-text-15">{{ object.name_id|default:"-" }}</dd>
+                </div>
+                {% endif %}
+
+                {% if 'ms' in active_codes %}
+                <div>
+                    <dt class="w-label-3 w-text-text-meta w-mb-1">🇲🇾 Malay</dt>
+                    <dd class="w-text-15">{{ object.name_ms|default:"-" }}</dd>
+                </div>
+                {% endif %}
+
+                {% if 'my' in active_codes %}
+                <div>
+                    <dt class="w-label-3 w-text-text-meta w-mb-1">🇲🇲 Myanmar</dt>
+                    <dd class="w-text-15">{{ object.name_my|default:"-" }}</dd>
+                </div>
+                {% endif %}
+
+                {% if 'fil' in active_codes %}
+                <div>
+                    <dt class="w-label-3 w-text-text-meta w-mb-1">🇵🇭 Filipino</dt>
+                    <dd class="w-text-15">{{ object.name_fil|default:"-" }}</dd>
+                </div>
+                {% endif %}
+            </dl>
+        </div>
+        {% endif %}
+
+        {# --- BLOCK 4: LỊCH SỬ ĐO ĐẠC --- #}
         {% if object.equipmentvalue_set.exists %}
-            <div class="w-bg-surface-page w-border w-border-border-furniture w-rounded w-overflow-hidden">
-                <div class="w-bg-surface-header w-px-4 w-py-3 w-border-b w-border-border-furniture">
-                    <h3 class="w-h5 w-m-0">{% trans "Lịch sử đo đạc" %}</h3>
+            <div class="w-bg-surface-page w-border w-border-border-furniture w-rounded w-overflow-hidden w-mt-6">
+                <div class="w-bg-surface-header w-px-4 w-py-3 w-border-b w-border-border-furniture w-flex w-items-center">
+                    <svg class="icon icon-history w-w-4 w-h-4 w-mr-2" aria-hidden="true"><use href="#icon-history"></use></svg>
+                    <h3 class="w-h5 w-m-0">
+                         {% get_label 'details' 'ui_inspect_history_title' 'Dữ liệu đo đạc gần đây' %}
+                    </h3>
                 </div>
                 <div class="w-p-4">
-                    <p class="w-text-text-meta">Đang được sử dụng bởi {{ object.equipmentvalue_set.count }} thiết bị.</p>
+                    <p class="w-text-text-meta">
+                        {% get_label 'details' 'ui_inspect_history_desc' 'Thông số này đã được sử dụng để ghi nhận dữ liệu trên thiết bị.' %}
+                    </p>
                 </div>
             </div>
         {% endif %}

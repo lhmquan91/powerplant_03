@@ -1,17 +1,73 @@
 {# details/templates/details/detail/index_results.html #}
 {% extends "wagtailadmin/generic/listing_results.html" %}
-{% load i18n wagtailadmin_tags %}
+{% load i18n wagtailadmin_tags core_tags %}
 
-{# 1. Tùy biến khu vực hiển thị kết quả (Bảng/Lưới) #}
 {% block results %}
-    {# Mặc định Wagtail dùng component Table để render bảng #}
-    {# Bạn có thể thay thế dòng này bằng vòng lặp for thủ công nếu muốn Custom Grid View #}
-    {% component table %}
+    <div class="listing results">
+        <table class="listing">
+            <thead>
+                <tr>
+                    <th class="title">
+                        {% get_label 'details' 'col_name_vi' 'Tên thông số (VN)' %}
+                    </th>
+                    <th>
+                        {% get_label 'details' 'col_name_en' 'Tiếng Anh' %}
+                    </th>
+                    {# Chỉ hiện cột Trung nếu active #}
+                    {% if 'zh' in active_codes %}
+                    <th>
+                        {% get_label 'details' 'col_name_zh' 'Tiếng Trung' %}
+                    </th>
+                    {% endif %}
+                    <th class="w-w-32">
+                        {% get_label 'details' 'col_unit' 'Đơn vị' %}
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for object in object_list %}
+                <tr>
+                    <td class="title" valign="top">
+                        <div class="title-wrapper">
+                            <a href="{% url 'wagtailsnippets_details_detail:inspect' object.id %}" title="Xem chi tiết" class="w-font-bold w-text-text-label">
+                                {{ object.name_vi|default:"(Chưa có tên TV)" }}
+                            </a>
+                        </div>
+                    </td>
+                    <td valign="top" class="w-text-text-meta">
+                        {{ object.name_en|default:"-" }}
+                    </td>
+                    
+                    {% if 'zh' in active_codes %}
+                    <td valign="top">
+                        {% if object.name_zh %}
+                            <div class="w-flex w-flex-col">
+                                <span class="w-text-14 w-font-serif">{{ object.name_zh }}</span>
+                                {% if object.name_zh_pinyin %}
+                                    <span class="w-text-11 w-text-text-meta w-italic w-mt-1">
+                                        {{ object.name_zh_pinyin }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <span class="w-text-text-meta">-</span>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+
+                    <td valign="top">
+                        <span class="w-font-mono w-text-13 w-bg-surface-menu w-inline-block w-px-1.5 w-py-0.5 w-rounded w-border w-border-border-furniture">
+                            {{ object.default_unit|default:"-" }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% endblock %}
 
-{# 2. Tùy biến thông báo khi không tìm thấy kết quả #}
 {% block no_results_message %}
-    {# Kiểm tra xem đang tìm kiếm hay đang lọc #}
     {% if is_searching or is_filtering %}
         <div class="nice-padding">
             <h2 role="alert">
@@ -21,29 +77,18 @@
                     Tìm thấy {{ counter }} kết quả
                 {% endblocktrans %}
             </h2>
-            {% if is_searching %}
-                <p>{% trans "Không có kết quả nào khớp với từ khóa tìm kiếm của bạn." %}</p>
-            {% endif %}
         </div>
     {% else %}
-        {# Trường hợp danh sách rỗng hoàn toàn (chưa có dữ liệu) #}
         <div class="nice-padding w-mt-8 w-text-center">
             <svg class="icon icon-doc-empty-inverse w-w-16 w-h-16 w-text-grey-300 w-mb-4" aria-hidden="true"><use href="#icon-doc-empty-inverse"></use></svg>
-            <h3 class="w-h4">{% trans "Chưa có nhóm thông số nào" %}</h3>
+            <h3 class="w-h4">{% get_label 'details' 'msg_empty_list_title' 'Chưa có thông số nào' %}</h3>
             {% if add_url %}
-                <p>{% trans "Bắt đầu bằng cách thêm một nhóm thông số mới." %}</p>
-                <a href="{{ add_url }}" class="button button-primary w-mt-4">{% trans "Thêm mới" %}</a>
+                <p class="w-mb-6">{% get_label 'details' 'msg_empty_list_desc' 'Bắt đầu bằng cách định nghĩa một thông số kỹ thuật mới.' %}</p>
+                <a href="{{ add_url }}" class="button button-primary button-long">
+                    <svg class="icon icon-plus w-w-3 w-h-3 w-mr-2" aria-hidden="true"><use href="#icon-plus"></use></svg>
+                    {% get_label 'common' 'btn_create_new' 'Thêm mới' %}
+                </a>
             {% endif %}
-        </div>
-    {% endif %}
-{% endblock %}
-
-{# 3. Tùy biến phân trang (Pagination) #}
-{% block pagination %}
-    {% if is_paginated %}
-        <div class="nice-padding">
-            {# linkurl=index_url đảm bảo phân trang vẫn giữ nguyên URL gốc #}
-            {% include "wagtailadmin/shared/pagination_nav.html" with items=page_obj linkurl=index_url %}
         </div>
     {% endif %}
 {% endblock %}

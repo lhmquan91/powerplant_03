@@ -65,11 +65,9 @@ class Equipment(ClusterableModel, PreviewableMixin, models.Model):
         MultiFieldPanel([
             FieldPanel('image'), 
             FieldPanel('manufacturer'), 
-            FieldPanel('model_number')
+            FieldPanel('model_number'),
         ], heading="Thông tin chung"),
         
-        # INLINE PANEL: Thay thế StreamField cũ
-        # Cho phép thêm/sửa/xóa các dòng EquipmentValue trực tiếp tại đây
         InlinePanel('values', label="Thông số kỹ thuật", heading="Chi tiết kỹ thuật"),
         
         MultiFieldPanel([

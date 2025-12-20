@@ -1,18 +1,21 @@
 {# details/templates/details/detail/edit.html #}
 {% extends "wagtailadmin/generic/edit.html" %}
-{% load i18n wagtailadmin_tags %}
+{% load i18n wagtailadmin_tags core_tags %}
 
-{# Tiêu đề trang Edit #}
 {% block main_header %}
-    {% include "wagtailadmin/shared/header.html" with title=page_title subtitle=object.name icon="edit" %}
+    {% include "wagtailadmin/shared/header.html" with title=page_title subtitle=object icon="edit" %}
 {% endblock %}
 
-{# Form #}
 {% block before_form %}
-    {# Có thể hiển thị cảnh báo nếu đang sửa một thông số quan trọng #}
-    {% if object.is_active %}
-        <div class="w-mb-4 w-px-4 w-py-2 w-bg-info-50 w-text-info-100 w-rounded">
-            {% trans "Thông số này đang hoạt động. Cẩn trọng khi thay đổi kiểu dữ liệu." %}
+    <div class="w-mb-6 w-px-4 w-py-3 w-bg-info-50 w-text-info-100 w-rounded w-flex w-items-start">
+        <svg class="icon icon-warning w-w-5 w-h-5 w-mr-3 w-flex-shrink-0" aria-hidden="true"><use href="#icon-warning"></use></svg>
+        <div>
+            <p class="w-font-bold w-mb-1">
+                {% get_label 'details' 'ui_edit_warning_title' 'Lưu ý quan trọng' %}
+            </p>
+            <p class="w-text-14">
+                {% get_label 'details' 'ui_edit_warning_desc' 'Việc thay đổi tên thông số sẽ cập nhật hiển thị trên toàn bộ các thiết bị đang sử dụng nó. Hãy đảm bảo tính nhất quán.' %}
+            </p>
         </div>
-    {% endif %}
+    </div>
 {% endblock %}

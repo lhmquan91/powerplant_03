@@ -24,6 +24,8 @@ BASE_DIR = PROJECT_DIR.parent
 # Application definition
 
 INSTALLED_APPS = [
+    "core",
+
     # App mặc định được tạo ra khi chạy lệnh wagtail start
     "home",
     # App mặc định chứa view xử lý giao diện tìm kiếm ở Frontend
@@ -120,6 +122,11 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
+        'OPTIONS': {
+            # Tăng thời gian chờ lên 20 hoặc 30 giây (Mặc định là 5s)
+            # Giúp script có thời gian đợi runserver nhả resource ra.
+            'timeout': 20, 
+        }
     }
 }
 
@@ -214,3 +221,5 @@ WAGTAILDOCS_EXTENSIONS = ['csv', 'docx', 'key', 'odt', 'pdf', 'pptx', 'rtf', 'tx
 
 
 WAGTAILIMAGES_EXTENSIONS = ["gif", "jpg", "jpeg", "png", "webp", "svg"]
+
+GEMINI_API_KEY = "AIzaSyBZSMN1sTK9MLXeIzxJ4S_3uCQQAN9mc6U"

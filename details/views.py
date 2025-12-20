@@ -1,264 +1,116 @@
-from django.shortcuts import redirect
-from wagtail.admin import messages
-
-# Import các View cơ sở từ Wagtail Snippets
-#
+from django.utils.translation import gettext as _
 from wagtail.snippets.views.snippets import (
     IndexView,
     CreateView,
     EditView,
     DeleteView,
     InspectView,
-    HistoryView,
     UsageView,
-    RevisionsCompareView,
-    RevisionsUnscheduleView,
-    UnpublishView,
-    LockView,
-    UnlockView,
-    PreviewOnCreate,
-    PreviewOnEdit
+    HistoryView,
 )
 
-from .models import DetailGroup
+from .models import Detail, EquipmentValue
+from core.utils import get_label_text, DynamicLabelMixin
+from core.models import SystemLanguage
 
-# =======================
-# === 1. DETAIL VIEWS ===
-# =======================
+# =========================================================
+# 1. DETAIL VIEWS (Sử dụng Global Mixin từ Core)
+# =========================================================
 
-# --- 1. LOGIC BẢO VỆ (MIXIN) ---
+class DetailIndexView(DynamicLabelMixin, IndexView):
+    app_name = 'details'
 
-class DetailGroupRequiredMixin:
-    """
-    Mixin cho Detail.
-    """
-    def dispatch(self, request, *args, **kwargs):
-        """
-        Chặn truy cập nếu chưa có DetailGroup.
-        Áp dụng cho các trang thao tác dữ liệu (List, Add, Edit).
-        Nếu chưa có DetailGroup, chuyển hướng về trang danh sách DetailGroup
-        """
-        if not DetailGroup.objects.exists():
-            messages.warning(
-                request, 
-                "Bạn cần tạo ít nhất một 'Nhóm Thông số' (Group) trước khi định nghĩa Chi tiết."
-            )
-            return redirect('wagtailsnippets_details_detailgroup:list')
-        return super().dispatch(request, *args, **kwargs)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Truyền danh sách mã ngôn ngữ đang active vào context (VD: ['vi', 'en', 'zh'])
+        context['active_codes'] = list(SystemLanguage.objects.filter(is_active=True).values_list('code', flat=True))
+        return context
 
+class DetailCreateView(DynamicLabelMixin, CreateView):
+    app_name = 'details'
 
-# --- 2. CÁC VIEW CHÍNH (CRUD) ---
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        # Lấy danh sách ngôn ngữ KHÔNG kích hoạt
+        inactive_codes = list(SystemLanguage.objects.filter(is_active=False).values_list('code', flat=True))
+        
+        # Danh sách tất cả các suffix ngôn ngữ có thể có trong model Detail
+        # (Không bao gồm vi/en vì là core)
+        all_suffixes = ['zh', 'th', 'lo', 'km', 'id', 'ms', 'my', 'fil']
+        
+        for code in all_suffixes:
+            # Nếu ngôn ngữ này nằm trong danh sách Inactive hoặc không tồn tại trong DB
+            # (Logic: code nằm trong inactive_codes HOẶC code không nằm trong active_codes thực tế)
+            # Cách đơn giản: Nếu code thuộc inactive_codes thì ẩn
+            if code in inactive_codes:
+                # Xây dựng tên trường
+                fields_to_hide = [f'name_{code}']
+                if code == 'zh':
+                    fields_to_hide.append('name_zh_pinyin')
+                
+                # Xóa khỏi form
+                for field_name in fields_to_hide:
+                    if field_name in form.fields:
+                        del form.fields[field_name]
+        return form
 
-class DetailIndexView(DetailGroupRequiredMixin, IndexView):
-    """
-    Trang danh sách (List View).
-    Mặc định: Hiển thị bảng dữ liệu, bộ lọc, tìm kiếm.
-    """
-    pass
-
-class DetailCreateView(DetailGroupRequiredMixin, CreateView):
-    """
-    Trang thêm mới (Add View).
-    Mặc định: Hiển thị Form tạo mới.
-    """
-    pass
-
-class DetailEditView(DetailGroupRequiredMixin, EditView):
-    """
-    Trang chỉnh sửa (Edit View).
-    Mặc định: Hiển thị Form chỉnh sửa.
-    """
-    pass
-
-class DetailDeleteView(DetailGroupRequiredMixin, DeleteView):
-    """
-    Trang xóa (Delete View).
-    Mặc định: Hiển thị trang xác nhận xóa.
-    """
-    pass
-
-class DetailInspectView(DetailGroupRequiredMixin, InspectView):
-    """
-    Trang xem chi tiết (Inspect View).
-    Mặc định: Hiển thị thông tin readonly của object (key-value).
-    """
-    pass
-
-
-# --- 3. CÁC VIEW QUẢN TRỊ & TIỆN ÍCH ---
-
-class DetailUsageView(DetailGroupRequiredMixin, UsageView):
-    """
-    Trang Usage.
-    Mặc định: Hiển thị nơi snippet này đang được sử dụng (liên kết với Page nào).
-    """
-    pass
-
-class DetailHistoryView(DetailGroupRequiredMixin, HistoryView):
-    """
-    Trang lịch sử (History).
-    Mặc định: Hiển thị log các lần thay đổi, ai sửa, sửa lúc nào.
-    """
-    pass
-
-
-# --- 4. CÁC VIEW LIÊN QUAN ĐẾN REVISION & PUBLISH ---
-# (Chỉ hoạt động nếu Model kế thừa RevisionMixin / DraftStateMixin)
-
-class DetailRevisionsCompareView(DetailGroupRequiredMixin, RevisionsCompareView):
-    """So sánh sự khác biệt giữa 2 phiên bản."""
-    pass
-
-class DetailRevisionsUnscheduleView(DetailGroupRequiredMixin, RevisionsUnscheduleView):
-    """Hủy lịch xuất bản."""
-    pass
-
-class DetailUnpublishView(DetailGroupRequiredMixin, UnpublishView):
-    """Gỡ bỏ xuất bản (Unpublish)."""
-    pass
-
-
-# --- 5. CÁC VIEW LIÊN QUAN ĐẾN LOCKING ---
-# (Chỉ hoạt động nếu Model kế thừa LockableMixin)
-
-class DetailLockView(DetailGroupRequiredMixin, LockView):
-    """Khóa vật phẩm (không cho người khác sửa)."""
-    pass
-
-class DetailUnlockView(DetailGroupRequiredMixin, UnlockView):
-    """Mở khóa vật phẩm."""
-    pass
-
-# --- 6. CÁC VIEW PREVIEW (Xem trước) ---
-# (Chỉ hoạt động nếu Model kế thừa PreviewableMixin)
-
-class DetailPreviewOnCreate(DetailGroupRequiredMixin, PreviewOnCreate):
-    pass
-
-class DetailPreviewOnEdit(DetailGroupRequiredMixin, PreviewOnEdit):
-    pass
-
-
-# =============================
-# === 2. DETAIL GROUP VIEWS ===
-# =============================
-
-# --- 1. LOGIC BẢO VỆ (MIXIN) ---
-
-class DetailGroupRequiredMixin:
-    """
-    Mixin cho DetailGroup.
-    """
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
+class DetailEditView(DynamicLabelMixin, EditView):
+    app_name = 'details'
     
+    # Áp dụng logic ẩn field tương tự CreateView
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        inactive_codes = list(SystemLanguage.objects.filter(is_active=False).values_list('code', flat=True))
+        all_suffixes = ['zh', 'th', 'lo', 'km', 'id', 'ms', 'my', 'fil']
+        
+        for code in all_suffixes:
+            if code in inactive_codes:
+                fields_to_hide = [f'name_{code}']
+                if code == 'zh':
+                    fields_to_hide.append('name_zh_pinyin')
+                for field_name in fields_to_hide:
+                    if field_name in form.fields:
+                        del form.fields[field_name]
+        return form
 
-# --- 2. CÁC VIEW CHÍNH (CRUD) ---
+class DetailDeleteView(DeleteView):
+    def get_page_title(self):
+        return get_label_text('details', 'view_delete_title', 'Xóa thông số')
 
-class DetailGroupIndexView(DetailGroupRequiredMixin, IndexView):
-    """
-    Trang danh sách (List View) cho DetailGroup.
-    Mặc định: Hiển thị bảng dữ liệu, bộ lọc, tìm kiếm.
-    """
+    def get_success_message(self, instance):
+        msg = get_label_text('details', 'msg_delete_success', "Đã xóa thành công '{object}'")
+        return msg.format(object=instance)
+
+class DetailInspectView(InspectView):
+    def get_page_title(self):
+        return get_label_text('details', 'view_inspect_title', 'Chi tiết thông số')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Truyền active_codes để template Inspect ẩn/hiện các block
+        context['active_codes'] = list(SystemLanguage.objects.filter(is_active=True).values_list('code', flat=True))
+        return context
+
+class DetailUsageView(UsageView):
+    def get_page_title(self):
+        return get_label_text('details', 'view_usage_title', 'Trạng thái sử dụng')
+
+class DetailHistoryView(HistoryView):
+    def get_page_title(self):
+        return get_label_text('details', 'view_history_title', 'Lịch sử thay đổi')
+
+
+# =========================================================
+# 2. EQUIPMENT VALUE VIEWS (Read-only)
+# =========================================================
+
+class EquipmentValueIndexView(IndexView):
+    def get_page_title(self):
+        return get_label_text('details', 'view_eq_value_index_title', 'Dữ liệu đo đạc toàn hệ thống')
+
+class EquipmentValueInspectView(InspectView):
     pass
 
-class DetailGroupCreateView(DetailGroupRequiredMixin, CreateView):
-    """
-    Trang thêm mới (Add View) cho DetailGroup.
-    Mặc định: Hiển thị Form tạo mới.
-    """
-    pass
-
-class DetailGroupEditView(DetailGroupRequiredMixin, EditView):
-    """
-    Trang chỉnh sửa (Edit View) cho DetailGroup.
-    Mặc định: Hiển thị Form chỉnh sửa.
-    """
-    pass
-
-class DetailGroupDeleteView(DetailGroupRequiredMixin, DeleteView):
-    """
-    Trang xóa (Delete View) cho DetailGroup.
-    Mặc định: Hiển thị trang xác nhận xóa.
-    """
-    pass
-
-class DetailGroupInspectView(DetailGroupRequiredMixin, InspectView):
-    """
-    Trang xem chi tiết (Inspect View) cho DetailGroup.
-    Mặc định: Hiển thị thông tin readonly của object (key-value).
-    """
-    pass
-
-# --- 3. CÁC VIEW QUẢN TRỊ & TIỆN ÍCH ---
-
-class DetailGroupUsageView(DetailGroupRequiredMixin, UsageView):
-    """
-    Trang Usage cho DetailGroup.
-    Mặc định: Hiển thị nơi snippet này đang được sử dụng (liên kết với Page nào).
-    """
-    pass
-
-class DetailGroupHistoryView(DetailGroupRequiredMixin, HistoryView):
-    """
-    Trang lịch sử (History) cho DetailGroup.
-    Mặc định: Hiển thị log các lần thay đổi, ai sửa, sửa lúc nào.
-    """
-    pass
-
-# --- 4. CÁC VIEW LIÊN QUAN ĐẾN REVISION & PUBLISH ---
-# (Chỉ hoạt động nếu Model kế thừa RevisionMixin / DraftStateMixin)
-
-class DetailGroupRevisionsCompareView(DetailGroupRequiredMixin, RevisionsCompareView):
-    """So sánh sự khác biệt giữa 2 phiên bản cho DetailGroup."""
-    pass
-
-class DetailGroupRevisionsUnscheduleView(DetailGroupRequiredMixin, RevisionsUnscheduleView):
-    """Hủy lịch xuất bản cho DetailGroup."""
-    pass
-
-class DetailGroupUnpublishView(DetailGroupRequiredMixin, UnpublishView):
-    """Gỡ bỏ xuất bản (Unpublish) cho DetailGroup."""
-    pass
-
-# --- 5. CÁC VIEW LIÊN QUAN ĐẾN LOCKING ---
-# (Chỉ hoạt động nếu Model kế thừa LockableMixin)
-
-class DetailGroupLockView(DetailGroupRequiredMixin, LockView):
-    """Khóa vật phẩm (không cho người khác sửa) cho DetailGroup."""
-    pass
-
-class DetailGroupUnlockView(DetailGroupRequiredMixin, UnlockView):
-    """Mở khóa vật phẩm cho DetailGroup."""
-    pass
-
-# --- 6. CÁC VIEW PREVIEW (Xem trước) ---
-# (Chỉ hoạt động nếu Model kế thừa PreviewableMixin)
-
-class DetailGroupPreviewOnCreate(DetailGroupRequiredMixin, PreviewOnCreate):
-    pass
-
-class DetailGroupPreviewOnEdit(DetailGroupRequiredMixin, PreviewOnEdit):
-    pass
-
-# ================================
-# === 3. EQUIPMENT VALUE VIEWS ===
-# ================================
-
-# --- 1. LOGIC BẢO VỆ (MIXIN) ---
-
-class EquipmentValueRequiredMixin:
-    """
-    Mixin cho DetailGroup.
-    """
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-    
-# --- 2. CÁC VIEW CHÍNH (CRUD) ---
-
-class EquipmentValueIndexView(EquipmentValueRequiredMixin, IndexView):
-    """
-    Trang danh sách (List View) cho EquipmentValue.
-    Mặc định: Hiển thị bảng dữ liệu, bộ lọc, tìm kiếm.
-    """
-    pass
+class EquipmentValueCreateView(CreateView): pass
+class EquipmentValueEditView(EditView): pass
+class EquipmentValueDeleteView(DeleteView): pass
